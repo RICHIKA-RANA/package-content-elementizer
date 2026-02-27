@@ -45,14 +45,14 @@ trio = ["trio (>=0.31.0) ; python_version < \"3.10\"", "trio (>=0.32.0) ; python
 
 [[package]]
 name = "certifi"
-version = "2026.1.4"
+version = "2026.2.25"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "certifi-2026.1.4-py3-none-any.whl", hash = "sha256:9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c"},
-    {file = "certifi-2026.1.4.tar.gz", hash = "sha256:ac726dd470482006e014ad384921ed6438c457018f4b3d204aea4281258b2120"},
+    {file = "certifi-2026.2.25-py3-none-any.whl", hash = "sha256:027692e4402ad994f1c42e52a4997a9763c646b73e4096e4d5d6db8af1d6f0fa"},
+    {file = "certifi-2026.2.25.tar.gz", hash = "sha256:e887ab5cee78ea814d3472169153c2d12cd43b14bd03329a39a9c6e2e80bfba7"},
 ]
 
 [[package]]
@@ -923,15 +923,17 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 dotenv = ">=0.9.9,<0.10.0"
 tenacity = ">=9.1.2,<10.0.0"
 
 [package.source]
-type = "directory"
-url = "../base-tdb-clients"
+type = "git"
+url = "https://github.com/TalkingDB/base-tdb-clients.git"
+reference = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"
+resolved_reference = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"
 
 [[package]]
 name = "talkingdb-helpers"
@@ -941,15 +943,17 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
-talkingdb-clients = {path = "../base-tdb-clients", develop = true}
-talkingdb-models = {path = "../base-tdb-models", develop = true}
+talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"}
+talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "5cfecbac5936fd2049e30dcc35d36b10d5428cbd"}
 
 [package.source]
-type = "directory"
-url = "../base-tdb-helpers"
+type = "git"
+url = "https://github.com/TalkingDB/base-tdb-helpers.git"
+reference = "22487371179056326711fb6c50604a146debe8a5"
+resolved_reference = "22487371179056326711fb6c50604a146debe8a5"
 
 [[package]]
 name = "talkingdb-models"
@@ -959,7 +963,7 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 networkx = "^3.6.1"
@@ -967,8 +971,10 @@ pydantic = {version = ">=2.12.5,<3.0.0", extras = ["email"]}
 smart-slugify = ">=0.1.2,<0.2.0"
 
 [package.source]
-type = "directory"
-url = "../base-tdb-models"
+type = "git"
+url = "https://github.com/TalkingDB/base-tdb-models.git"
+reference = "5cfecbac5936fd2049e30dcc35d36b10d5428cbd"
+resolved_reference = "5cfecbac5936fd2049e30dcc35d36b10d5428cbd"
 
 [[package]]
 name = "tenacity"
@@ -1318,4 +1324,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "91c373be67d7cf93982591f82ae3e2c9979ba6b41c01c62f99c35ca3f29fcc7f"
+content-hash = "fb435fc154d98c85f973b5591c351f682d8286ec375977c6c664e589b17dabd0"
