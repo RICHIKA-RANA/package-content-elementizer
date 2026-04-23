@@ -941,8 +941,8 @@ tenacity = ">=9.1.2,<10.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/TalkingDB/base-tdb-clients.git"
-reference = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"
-resolved_reference = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"
+reference = "e73b24e74cbf564094c1b9df4203d82caa2bfd87"
+resolved_reference = "e73b24e74cbf564094c1b9df4203d82caa2bfd87"
 
 [[package]]
 name = "talkingdb-helpers"
@@ -955,14 +955,14 @@ files = []
 develop = false
 
 [package.dependencies]
-talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "53b99b9755fc84c813aa32c78b1d7d50ca8a06f0"}
+talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "e73b24e74cbf564094c1b9df4203d82caa2bfd87"}
 talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"}
 
 [package.source]
 type = "git"
 url = "https://github.com/TalkingDB/base-tdb-helpers.git"
-reference = "0348be0c016d1fa5fbdbd754bda0434706cc9ac4"
-resolved_reference = "0348be0c016d1fa5fbdbd754bda0434706cc9ac4"
+reference = "daf5ba25427a41914a0469f34b07c2753daea4e3"
+resolved_reference = "daf5ba25427a41914a0469f34b07c2753daea4e3"
 
 [[package]]
 name = "talkingdb-models"
@@ -1333,4 +1333,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "1786c441da05ae9b34419db8276dc68cebad73f6525b752c16fd24887401f6d8"
+content-hash = "888143cee0bd19c59a7300942355f7d60265067f1d234b3c3629a35fe428810d"
