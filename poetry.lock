@@ -932,17 +932,15 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 dotenv = ">=0.9.9,<0.10.0"
 tenacity = ">=9.1.2,<10.0.0"
 
 [package.source]
-type = "git"
-url = "https://github.com/TalkingDB/base-tdb-clients.git"
-reference = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"
-resolved_reference = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"
+type = "directory"
+url = "../base-tdb-clients"
 
 [[package]]
 name = "talkingdb-helpers"
@@ -952,17 +950,15 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
-talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"}
-talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"}
+talkingdb-clients = {path = "../base-tdb-clients", develop = true}
+talkingdb-models = {path = "../base-tdb-models", develop = true}
 
 [package.source]
-type = "git"
-url = "https://github.com/TalkingDB/base-tdb-helpers.git"
-reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
-resolved_reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
+type = "directory"
+url = "../base-tdb-helpers"
 
 [[package]]
 name = "talkingdb-models"
@@ -972,7 +968,7 @@ optional = false
 python-versions = ">=3.12,<3.14"
 groups = ["main"]
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 networkx = "^3.6.1"
@@ -980,10 +976,8 @@ pydantic = {version = ">=2.12.5,<3.0.0", extras = ["email"]}
 smart-slugify = ">=0.1.2,<0.2.0"
 
 [package.source]
-type = "git"
-url = "https://github.com/TalkingDB/base-tdb-models.git"
-reference = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"
-resolved_reference = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"
+type = "directory"
+url = "../base-tdb-models"
 
 [[package]]
 name = "tenacity"
@@ -1333,4 +1327,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "fbffa801e7a92dca6dd89fb2ceee050df3403562f66bdca77034f357974ee2fd"
+content-hash = "91c373be67d7cf93982591f82ae3e2c9979ba6b41c01c62f99c35ca3f29fcc7f"
