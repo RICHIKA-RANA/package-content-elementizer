@@ -961,8 +961,8 @@ talkingdb-models = {git = "https://github.com/RICHIKA-RANA/base-tdb-models.git",
 [package.source]
 type = "git"
 url = "https://github.com/RICHIKA-RANA/base-tdb-helpers.git"
-reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
-resolved_reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
+reference = "e77215788b854b4d8af10a24de614c59762ac67d"
+resolved_reference = "e77215788b854b4d8af10a24de614c59762ac67d"
 
 [[package]]
 name = "talkingdb-models"
@@ -1331,4 +1331,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "fbffa801e7a92dca6dd89fb2ceee050df3403562f66bdca77034f357974ee2fd"
+content-hash = "c623f660c24e85c7c7cd193ef6dce0ccbb1c38a699cdf9997e436dedbb8bc178"
