@@ -940,7 +940,7 @@ tenacity = ">=9.1.2,<10.0.0"
 
 [package.source]
 type = "git"
-url = "https://github.com/TalkingDB/base-tdb-clients.git"
+url = "https://github.com/RICHIKA-RANA/base-tdb-clients.git"
 reference = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"
 resolved_reference = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"
 
@@ -955,12 +955,12 @@ files = []
 develop = false
 
 [package.dependencies]
-talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"}
-talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"}
+talkingdb-clients = {git = "https://github.com/RICHIKA-RANA/base-tdb-clients.git", rev = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8"}
+talkingdb-models = {git = "https://github.com/RICHIKA-RANA/base-tdb-models.git", rev = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"}
 
 [package.source]
 type = "git"
-url = "https://github.com/TalkingDB/base-tdb-helpers.git"
+url = "https://github.com/RICHIKA-RANA/base-tdb-helpers.git"
 reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
 resolved_reference = "c4ada3824cb1d8e752d37141c827547dbb64b2b7"
 
@@ -981,7 +981,7 @@ smart-slugify = ">=0.1.2,<0.2.0"
 
 [package.source]
 type = "git"
-url = "https://github.com/TalkingDB/base-tdb-models.git"
+url = "https://github.com/RICHIKA-RANA/base-tdb-models.git"
 reference = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"
 resolved_reference = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7"
 
