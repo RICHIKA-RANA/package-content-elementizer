@@ -24,9 +24,9 @@ python-docx = ">=1.2.0,<2.0.0"
 python-multipart = ">=0.0.20,<0.0.21"
 debugpy = ">=1.8.19,<2.0.0"
 
-talkingdb-models = { path = "../base-tdb-models", develop = true }
-talkingdb-clients = { path = "../base-tdb-clients", develop = true }
-talkingdb-helpers = { path = "../base-tdb-helpers", develop = true }
+talkingdb-models = { git = "git+https://github.com/TalkingDB/base-tdb-models.git", rev = "cd57f4b0f6a4f744e57ddb78d392b215f3c0f7b7" }
+talkingdb-clients = { git = "git+https://github.com/TalkingDB/base-tdb-clients.git", rev = "3a5b2fb72af64d3b04788bbd78f73be528dc84f8" }
+talkingdb-helpers = { git = "git+https://github.com/TalkingDB/base-tdb-helpers.git", rev = "4538a1d021e653b491270cc5a2a282be12bea50e" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
