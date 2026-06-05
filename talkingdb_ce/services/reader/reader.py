@@ -1,4 +1,5 @@
 from .docx.docx_reader import DocxReader
+from .pdf.pdf_reader import PdfReader
 from talkingdb.models.document.document import DocumentModel
 
 
@@ -11,6 +12,7 @@ class ReaderFactory:
     def get_reader(file_type: str):
         readers = {
             "docx": DocxReader(),
+            "pdf": PdfReader(),
         }
         return readers.get(file_type.lower())
 
