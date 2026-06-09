@@ -1,5 +1,5 @@
 
-from typing import List, Optional
+from typing import List
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
@@ -123,21 +123,25 @@ class DocxReader:
 
         return model
 
-    def extract_paragraph_style(self, p: Paragraph) -> Optional[ParagraphStyleModel]:
-        if not p.style:
-            return None
+    def extract_paragraph_style(self, p: Paragraph) -> ParagraphStyleModel:
+        style = p.style
+        if style is not None:
+            name = style.name
+            font = style.font
+        else:
+            name = p._p.style or "Normal"
+            font = None
 
         pf = p.paragraph_format
-        font = p.style.font
 
         return ParagraphStyleModel(
-            name=p.style.name,
+            name=name,
             alignment=p.alignment.name if p.alignment else None,
             space_before=pf.space_before.pt if pf.space_before else None,
             space_after=pf.space_after.pt if pf.space_after else None,
-            bold=font.bold,
-            italic=font.italic,
-            font_size=font.size.pt if font.size else None
+            bold=font.bold if font else None,
+            italic=font.italic if font else None,
+            font_size=font.size.pt if (font and font.size) else None,
         )
 
     def read_header_footer(self, container) -> List[RunModel]:
