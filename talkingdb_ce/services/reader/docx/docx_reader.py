@@ -91,44 +91,65 @@ class DocxReader:
     def extract_table(self, tbl: Table) -> TableModel:
         model = TableModel()
 
-        for row in tbl.rows:
+        trs = [row._tr for row in tbl.rows]
+
+        offset_maps = []
+        for tr in trs:
+            offsets = {}
+            for tc in tr.tc_lst:
+                try:
+                    start = tc.grid_offset
+                    span = int(tc.grid_span or 1)
+                except Exception:
+                    continue
+                for off in range(start, start + span):
+                    offsets[off] = tc
+            offset_maps.append(offsets)
+
+        def vertical_span(r_idx: int, offset: int) -> int:
+            span = 1
+            for k in range(r_idx + 1, len(trs)):
+                below = offset_maps[k].get(offset)
+                if below is not None and below.vMerge == "continue":
+                    span += 1
+                else:
+                    break
+            return span
+
+        for r_idx, tr in enumerate(trs):
             row_model = []
 
-            for tc in row._tr.tc_lst:
+            for tc in tr.tc_lst:
+                if tc.vMerge == "continue":
+                    continue
+
                 colspan = int(tc.grid_span or 1)
+
                 rowspan = 1
                 if tc.vMerge == "restart":
                     try:
-                        rowspan = max(tc.bottom - tc.top, 1)
-                    except (ValueError, AttributeError):
+                        rowspan = vertical_span(r_idx, tc.grid_offset)
+                    except Exception:
                         rowspan = 1
 
-                cell = None if tc.vMerge == "continue" else _Cell(tc, tbl)
-
+                cell = _Cell(tc, tbl)
                 paragraphs: List[ParagraphModel] = []
-                if cell is not None:
-                    for p in cell.paragraphs:
-                        if p.text.strip():
-                            is_list, list_type, level = self.extract_list_info(p)
-                            paragraphs.append(ParagraphModel(
-                                style=self.extract_paragraph_style(p),
-                                runs=self.extract_runs(p),
-                                is_list=is_list,
-                                list_type=list_type,
-                                list_level=level,
-                            ))
+                for p in cell.paragraphs:
+                    if p.text.strip():
+                        is_list, list_type, level = self.extract_list_info(p)
+                        paragraphs.append(ParagraphModel(
+                            style=self.extract_paragraph_style(p),
+                            runs=self.extract_runs(p),
+                            is_list=is_list,
+                            list_type=list_type,
+                            list_level=level,
+                        ))
 
                 row_model.append(TableCellModel(
                     paragraphs=paragraphs,
                     colspan=colspan,
                     rowspan=rowspan,
                 ))
-                for _ in range(colspan - 1):
-                    row_model.append(TableCellModel(
-                        paragraphs=[],
-                        colspan=1,
-                        rowspan=1,
-                    ))
 
             model.rows.append(row_model)
 
