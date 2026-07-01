@@ -17,7 +17,8 @@ from talkingdb.models.document.elements.primitive.paragraph import (
 from ..docx.docx_reader import DocxReader
 
 
-CONVERT_TIMEOUT_SECONDS = int(os.getenv("CE_PDF_CONVERT_TIMEOUT_SECONDS", "600"))
+CONVERT_TIMEOUT_SECONDS = int(
+    os.getenv("CE_PDF_CONVERT_TIMEOUT_SECONDS", "600"))
 
 MIN_EXTRACTABLE_TEXT_CHARS = int(os.getenv("CE_PDF_MIN_TEXT_CHARS", "16"))
 
@@ -44,7 +45,8 @@ class PdfReader:
     def read_document(self, io_buffer, file_name) -> DocumentModel:
         docx_bytes, page_numbers = self._to_docx_bytes(io_buffer)
 
-        model = self.docx_reader.read_document(io.BytesIO(docx_bytes), file_name)
+        model = self.docx_reader.read_document(
+            io.BytesIO(docx_bytes), file_name, paginate=False)
 
         self._reject_if_textless(model, file_name)
         self._apply_page_numbers(model, page_numbers)
@@ -97,7 +99,8 @@ class PdfReader:
         """
         try:
             result = subprocess.run(
-                [sys.executable, "-m", _CONVERT_MODULE, pdf_path, docx_path, pages_path],
+                [sys.executable, "-m", _CONVERT_MODULE,
+                    pdf_path, docx_path, pages_path],
                 capture_output=True,
                 text=True,
                 timeout=CONVERT_TIMEOUT_SECONDS,
@@ -116,11 +119,11 @@ class PdfReader:
             with open(pages_path, "r") as fh:
                 page_numbers = json.load(fh)
         except (OSError, ValueError) as exc:
-            logger.warning(f"could not read page map, page numbers will be unset: {exc}")
+            logger.warning(
+                f"could not read page map, page numbers will be unset: {exc}")
             return []
 
         return page_numbers if isinstance(page_numbers, list) else []
-    
 
     def _apply_page_numbers(self, model: DocumentModel, page_numbers: List[int]) -> None:
         """Assign page numbers using the section->page mapping from pdf2docx.
@@ -181,7 +184,8 @@ class PdfReader:
 
         body_size = size_weight.most_common(1)[0][0]
         tiers = sorted({s for s in size_weight if s > body_size}, reverse=True)
-        size_level = {s: min(i + 1, MAX_HEADING_LEVEL) for i, s in enumerate(tiers)}
+        size_level = {s: min(i + 1, MAX_HEADING_LEVEL)
+                      for i, s in enumerate(tiers)}
         bold_level = min(len(tiers) + 1, MAX_HEADING_LEVEL)
 
         for para, text, size, bold in sized:

@@ -1,4 +1,3 @@
-
 from typing import List
 
 from docx import Document
@@ -15,6 +14,8 @@ from talkingdb.models.document.layouts.layout import LayoutModel, HeaderModel, F
 from talkingdb.models.document.elements.base.base import RunModel, RunAttributes
 from talkingdb.models.document.elements.primitive.paragraph import ParagraphModel, ParagraphStyleModel
 from talkingdb.models.document.elements.primitive.table import TableModel, TableCellModel
+
+from .docx_paginate import paginate_docx, PAGINATE_DOCX_ENABLED
 
 
 class DocxReader:
@@ -150,9 +151,13 @@ class DocxReader:
             runs.extend(self.extract_runs(p))
         return runs
 
-    def read_document(self, io_buffer, file_name) -> DocumentModel:
+    def read_document(self, io_buffer, file_name, paginate: bool = True) -> DocumentModel:
         self.io_buffer = io_buffer
         self.doc_uid = DocumentModel.make_uid(io_buffer)
+
+        io_buffer.seek(0)
+        raw_docx_bytes = io_buffer.read()
+        io_buffer.seek(0)
 
         doc = Document(self.io_buffer)
         model = DocumentModel(filename=file_name)
@@ -199,5 +204,8 @@ class DocxReader:
 
         model.assign_ids(self.doc_uid)
         model.build_hierarchy()
+
+        if paginate and PAGINATE_DOCX_ENABLED:
+            paginate_docx(raw_docx_bytes, model)
 
         return model
