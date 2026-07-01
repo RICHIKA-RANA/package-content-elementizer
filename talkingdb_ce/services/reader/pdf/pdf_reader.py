@@ -1,5 +1,6 @@
 import io
 import os
+import json
 import subprocess
 import sys
 import tempfile
@@ -41,22 +42,24 @@ class PdfReader:
 
     # --------------------------------------------------------------- public API
     def read_document(self, io_buffer, file_name) -> DocumentModel:
-        docx_bytes = self._to_docx_bytes(io_buffer)
+        docx_bytes, page_numbers = self._to_docx_bytes(io_buffer)
 
         model = self.docx_reader.read_document(io.BytesIO(docx_bytes), file_name)
 
         self._reject_if_textless(model, file_name)
+        self._apply_page_numbers(model, page_numbers)
         self._remap_headings(model)
         model.build_hierarchy()
         return model
 
     # ----------------------------------------------------------------- convert
-    def _to_docx_bytes(self, io_buffer) -> bytes:
+    def _to_docx_bytes(self, io_buffer) -> Tuple[bytes, List[int]]:
         io_buffer.seek(0)
         pdf_data = io_buffer.read()
 
         pdf_path: Optional[str] = None
         docx_path: Optional[str] = None
+        pages_path: Optional[str] = None
         try:
             with tempfile.NamedTemporaryFile(
                 prefix="tdb-pdf-", suffix=".pdf", delete=False
@@ -69,23 +72,32 @@ class PdfReader:
             ) as tmp_docx:
                 docx_path = tmp_docx.name
 
-            self._convert(pdf_path, docx_path)
+            with tempfile.NamedTemporaryFile(
+                prefix="tdb-pdf-", suffix=".pages.json", delete=False
+            ) as tmp_pages:
+                pages_path = tmp_pages.name
+
+            page_numbers = self._convert(pdf_path, docx_path, pages_path)
 
             with open(docx_path, "rb") as fh:
-                return fh.read()
+                return fh.read(), page_numbers
         finally:
-            for path in (pdf_path, docx_path):
+            for path in (pdf_path, docx_path, pages_path):
                 if path and os.path.exists(path):
                     try:
                         os.remove(path)
                     except OSError:
                         logger.warning(f"failed to remove temp file: {path}")
 
-    def _convert(self, pdf_path: str, docx_path: str) -> None:
-        """Run pdf2docx in a killable child process with a wall-clock cap."""
+    def _convert(self, pdf_path: str, docx_path: str, pages_path: str) -> List[int]:
+        """Run pdf2docx in a killable child process with a wall-clock cap.
+
+        Returns the ordered list of 1-based PDF page numbers, one per docx
+        section pdf2docx produced (it starts a new section per page).
+        """
         try:
             result = subprocess.run(
-                [sys.executable, "-m", _CONVERT_MODULE, pdf_path, docx_path],
+                [sys.executable, "-m", _CONVERT_MODULE, pdf_path, docx_path, pages_path],
                 capture_output=True,
                 text=True,
                 timeout=CONVERT_TIMEOUT_SECONDS,
@@ -99,6 +111,33 @@ class PdfReader:
             detail = (result.stderr or result.stdout or "").strip()
             detail = detail or f"converter exited with code {result.returncode}"
             raise ValueError(f"PDF could not be converted ({detail})")
+
+        try:
+            with open(pages_path, "r") as fh:
+                page_numbers = json.load(fh)
+        except (OSError, ValueError) as exc:
+            logger.warning(f"could not read page map, page numbers will be unset: {exc}")
+            return []
+
+        return page_numbers if isinstance(page_numbers, list) else []
+    
+
+    def _apply_page_numbers(self, model: DocumentModel, page_numbers: List[int]) -> None:
+        """Assign page numbers using the section->page mapping from pdf2docx.
+
+        pdf2docx emits one docx section per source PDF page, and DocxReader
+        already splits the document into one LayoutModel per section in order,
+        so model.layouts[i] corresponds to page_numbers[i].
+        """
+        if not page_numbers:
+            return
+
+        for layout_idx, layout in enumerate(model.layouts):
+            if layout_idx >= len(page_numbers):
+                break
+            page_no = page_numbers[layout_idx]
+            for elem in layout.elements:
+                elem.page = page_no
 
     # ------------------------------------------------------------- text guard
     def _reject_if_textless(self, model: DocumentModel, file_name) -> None:
