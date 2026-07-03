@@ -3,6 +3,7 @@ import re
 import subprocess
 import tempfile
 from typing import List
+import shutil
 
 from talkingdb.logger.console import logger
 from talkingdb.models.document.document import DocumentModel
@@ -17,6 +18,11 @@ CONVERT_TIMEOUT_SECONDS = int(
 _ANCHOR_LEN = 40
 _MIN_ANCHOR_LEN = 8
 
+if PAGINATE_DOCX_ENABLED and shutil.which("soffice") is None:
+    raise EnvironmentError(
+        "CE_DOCX_PAGINATE is enabled but soffice is not on PATH. "
+        "Either install libreoffice-writer or set CE_DOCX_PAGINATE=0."
+    )
 
 class PaginationError(Exception):
     pass

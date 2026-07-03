@@ -134,6 +134,14 @@ class PdfReader:
         """
         if not page_numbers:
             return
+        
+        if len(model.layouts) != len(page_numbers):
+            logger.warning(
+                f"Layout/page-number mismatch: {len(model.layouts)} layouts "
+                f"but {len(page_numbers)} page numbers. "
+                f"This can happen with multi-column PDFs. "
+                f"Layouts beyond index {len(page_numbers) - 1} will have page=None."
+            )
 
         for layout_idx, layout in enumerate(model.layouts):
             if layout_idx >= len(page_numbers):
