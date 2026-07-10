@@ -100,7 +100,10 @@ class DocxReader:
                 rowspan = 1
                 colspan = int(cell._tc.grid_span)
                 if cell._tc.vMerge == "restart":
-                    rowspan = cell._tc.bottom
+                    try:
+                        rowspan = cell._tc.bottom
+                    except ValueError:
+                        rowspan = 1
 
                 _paragraphs = []
                 for p in cell.paragraphs:
