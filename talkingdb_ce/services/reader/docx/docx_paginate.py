@@ -13,7 +13,7 @@ PAGINATE_DOCX_ENABLED = os.getenv(
     "CE_DOCX_PAGINATE", "1") not in ("0", "false", "False")
 
 CONVERT_TIMEOUT_SECONDS = int(
-    os.getenv("CE_DOCX_PAGINATE_TIMEOUT_SECONDS", "120"))
+    os.getenv("CE_DOCX_PAGINATE_TIMEOUT_SECONDS", "1800"))
 
 _ANCHOR_LEN = 40
 _MIN_ANCHOR_LEN = 8
