@@ -8,7 +8,7 @@ from docx.table import Table
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 
-
+from talkingdb.logger.console import logger
 from talkingdb.models.document.document import DocumentModel
 from talkingdb.models.document.layouts.layout import LayoutModel, HeaderModel, FooterModel
 from talkingdb.models.document.elements.base.base import RunModel, RunAttributes
@@ -103,6 +103,10 @@ class DocxReader:
                     try:
                         rowspan = cell._tc.bottom
                     except ValueError:
+                        logger.warning(
+                            f"[{self.doc_uid}] table rowspan fallback: no tc at grid_offset="
+                            f"{cell._tc.grid_offset} below row {r_idx}; treating cell as unmerged"
+                        )
                         rowspan = 1
 
                 _paragraphs = []
