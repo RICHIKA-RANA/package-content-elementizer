@@ -1,4 +1,5 @@
 from typing import List
+import copy
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
@@ -108,7 +109,6 @@ class DocxReader:
                             f"{cell._tc.grid_offset} below row {r_idx}; treating cell as unmerged"
                         )
                         rowspan = 1
-
                 _paragraphs = []
                 for p in cell.paragraphs:
                     if p.text.strip():
@@ -172,11 +172,21 @@ class DocxReader:
         section_idx = 0
         section = doc.sections[0]
 
-        def new_layout(sec):
+        def new_layout(sec, prev_layout=None):
+            if prev_layout is not None and sec.header.is_linked_to_previous:
+                header = copy.deepcopy(prev_layout.header)
+            else:
+                header = HeaderModel(self.read_header_footer(sec.header))
+
+            if prev_layout is not None and sec.footer.is_linked_to_previous:
+                footer = copy.deepcopy(prev_layout.footer)
+            else:
+                footer = FooterModel(self.read_header_footer(sec.footer))
+
             return LayoutModel(
                 orientation="LANDSCAPE" if sec.orientation == WD_ORIENT.LANDSCAPE else "PORTRAIT",
-                header=HeaderModel(self.read_header_footer(sec.header)),
-                footer=FooterModel(self.read_header_footer(sec.footer)),
+                header=header,
+                footer=footer,
             )
 
         layout = new_layout(section)
@@ -189,7 +199,7 @@ class DocxReader:
 
                 if sectPr is not None:
                     section_idx += 1
-                    layout = new_layout(doc.sections[section_idx])
+                    layout = new_layout(doc.sections[section_idx], prev_layout=layout)
                     model.layouts.append(layout)
                     continue
 

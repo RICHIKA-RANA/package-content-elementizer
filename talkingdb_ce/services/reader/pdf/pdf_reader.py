@@ -18,7 +18,7 @@ from ..docx.docx_reader import DocxReader
 
 
 CONVERT_TIMEOUT_SECONDS = int(
-    os.getenv("CE_PDF_CONVERT_TIMEOUT_SECONDS", "600"))
+    os.getenv("CE_PDF_CONVERT_TIMEOUT_SECONDS", "3600"))
 
 MIN_EXTRACTABLE_TEXT_CHARS = int(os.getenv("CE_PDF_MIN_TEXT_CHARS", "16"))
 
@@ -134,7 +134,7 @@ class PdfReader:
         """
         if not page_numbers:
             return
-        
+
         if len(model.layouts) != len(page_numbers):
             logger.warning(
                 f"Layout/page-number mismatch: {len(model.layouts)} layouts "
