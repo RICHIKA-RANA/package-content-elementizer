@@ -1,4 +1,5 @@
 from typing import List
+import copy
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
@@ -173,12 +174,12 @@ class DocxReader:
 
         def new_layout(sec, prev_layout=None):
             if prev_layout is not None and sec.header.is_linked_to_previous:
-                header = prev_layout.header
+                header = copy.deepcopy(prev_layout.header)
             else:
                 header = HeaderModel(self.read_header_footer(sec.header))
 
             if prev_layout is not None and sec.footer.is_linked_to_previous:
-                footer = prev_layout.footer
+                footer = copy.deepcopy(prev_layout.footer)
             else:
                 footer = FooterModel(self.read_header_footer(sec.footer))
 
