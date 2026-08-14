@@ -26,9 +26,9 @@ pymupdf = ">=1.24.0,<2.0.0"
 python-multipart = ">=0.0.20,<0.0.21"
 debugpy = ">=1.8.19,<2.0.0"
 
-talkingdb-models = { git = "git+https://github.com/TalkingDB/base-tdb-models.git", rev = "e4670ca4338c154dc048acc1eb480620447f696f" }
+talkingdb-models = { git = "git+https://github.com/TalkingDB/base-tdb-models.git", rev = "adc2d6a23801a7af01975f23d847e241220ffa06" }
 talkingdb-clients = { git = "git+https://github.com/TalkingDB/base-tdb-clients.git", rev = "9931c1f832d4772f5137cdc4bb193daadab2ad30" }
-talkingdb-helpers = { git = "git+https://github.com/TalkingDB/base-tdb-helpers.git", rev = "1d226dfcf1dee6ede0dc76e5e5582c9423556562" }
+talkingdb-helpers = { git = "git+https://github.com/TalkingDB/base-tdb-helpers.git", rev = "d94707db66a8f052cfed0b22637f479dffa34bf1" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
