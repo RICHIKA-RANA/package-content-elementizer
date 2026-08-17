@@ -7,8 +7,12 @@ import tempfile
 from collections import Counter
 from typing import List, Optional, Tuple
 
+import fitz
+
 from talkingdb.logger.console import logger
 from talkingdb.models.document.document import DocumentModel
+from talkingdb.models.failure.failure import DocumentFailure
+from talkingdb.models.failure.reason import FailureReason
 from talkingdb.models.document.elements.primitive.paragraph import (
     ParagraphModel,
     ParagraphStyleModel,
@@ -43,6 +47,8 @@ class PdfReader:
 
     # --------------------------------------------------------------- public API
     def read_document(self, io_buffer, file_name) -> DocumentModel:
+        self._reject_if_password_protected(io_buffer, file_name)
+
         docx_bytes, page_numbers = self._to_docx_bytes(io_buffer)
 
         model = self.docx_reader.read_document(
@@ -53,6 +59,29 @@ class PdfReader:
         self._remap_headings(model)
         model.build_hierarchy()
         return model
+
+    # --------------------------------------------------------------- preflight
+    def _reject_if_password_protected(self, io_buffer, file_name) -> None:
+        io_buffer.seek(0)
+        pdf_data = io_buffer.read()
+        io_buffer.seek(0)
+
+        try:
+            document = fitz.open(stream=pdf_data, filetype="pdf")
+        except Exception as exc:
+            logger.warning(f"pdf preflight could not open '{file_name}': {exc}")
+            return
+
+        try:
+            needs_password = bool(document.needs_pass)
+        finally:
+            document.close()
+
+        if needs_password:
+            raise DocumentFailure(
+                FailureReason.PASSWORD_PROTECTED,
+                detail=f"PDF '{file_name}' requires a password to open",
+            )
 
     # ----------------------------------------------------------------- convert
     def _to_docx_bytes(self, io_buffer) -> Tuple[bytes, List[int]]:

@@ -1,6 +1,8 @@
 from .docx.docx_reader import DocxReader
 from .pdf.pdf_reader import PdfReader
 from talkingdb.models.document.document import DocumentModel
+from talkingdb.models.failure.failure import DocumentFailure
+from talkingdb.models.failure.reason import FailureReason
 
 
 class ReaderFactory:
@@ -20,5 +22,8 @@ class ReaderFactory:
 def parse_document(io_buffer, file_type: str, file_name: str) -> DocumentModel:
     reader = ReaderFactory.get_reader(file_type)
     if not reader:
-        raise ValueError(f"Unsupported file type: {file_type}")
+        raise DocumentFailure(
+            FailureReason.UNSUPPORTED_FILE_TYPE,
+            detail=f"unsupported file type: {file_type or '(none)'}",
+        )
     return reader.read_document(io_buffer, file_name)
