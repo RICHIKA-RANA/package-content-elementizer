@@ -1,4 +1,4 @@
-from typing import List
+from typing import Callable, List, Optional
 import copy
 
 from docx import Document
@@ -158,7 +158,13 @@ class DocxReader:
             runs.extend(self.extract_runs(p))
         return runs
 
-    def read_document(self, io_buffer, file_name, paginate: bool = True) -> DocumentModel:
+    def read_document(
+        self,
+        io_buffer,
+        file_name,
+        paginate: bool = True,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> DocumentModel:
         self.io_buffer = io_buffer
         self.doc_uid = DocumentModel.make_uid(io_buffer)
 
@@ -223,6 +229,6 @@ class DocxReader:
         model.build_hierarchy()
 
         if paginate and PAGINATE_DOCX_ENABLED:
-            paginate_docx(raw_docx_bytes, model)
+            paginate_docx(raw_docx_bytes, model, cancel_check=cancel_check)
 
         return model

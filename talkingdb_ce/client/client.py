@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 import requests
 import io
-from typing import Optional, Dict, Any, Union
+from typing import Callable, Optional, Dict, Any, Union
 from talkingdb.models.api.mode import ClientMode
 from talkingdb.models.failure.failure import DocumentFailure
 from talkingdb.models.failure.reason import FailureReason
@@ -38,7 +38,11 @@ class CEClient:
         file_name: Optional[str] = None,
         file: Optional[UploadFile] = None,
         metadata: Optional[Metadata] = None,
+        cancel_check: Optional[Callable[[], bool]] = None,
     ) -> Dict[str, Any]:
+        """``cancel_check`` is supported in DIRECT mode only. API mode cannot
+        cancel an in-flight request to the remote CE service.
+        """
 
         if self.mode == ClientMode.API:
             if file:
@@ -68,9 +72,10 @@ class CEClient:
         if not file:
             file = UploadFile(filename=file_name, file=file_bytes)
 
-        return await reader.parse_file(
+        return await reader.run_parse(
             document_file=file,
-            metadata=metadata.to_str() if metadata else None
+            metadata=metadata.to_str() if metadata else None,
+            cancel_check=cancel_check,
         )
 
     # ------------------------------------------------------------- boundary

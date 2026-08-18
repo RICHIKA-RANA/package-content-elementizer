@@ -2,11 +2,13 @@ import os
 import re
 import subprocess
 import tempfile
-from typing import List
+from typing import Callable, List, Optional
 import shutil
 
 from talkingdb.logger.console import logger
 from talkingdb.models.document.document import DocumentModel
+
+from ..killable_subprocess import ReadCancelled, run_killable
 
 # Toggle without a redeploy if soffice is missing/misbehaving in an env.
 PAGINATE_DOCX_ENABLED = os.getenv(
@@ -28,21 +30,33 @@ class PaginationError(Exception):
     pass
 
 
-def paginate_docx(docx_bytes: bytes, model: DocumentModel) -> None:
-    """Best-effort: render docx -> pdf, extract per-page text, stamp elem.page.
+def paginate_docx(
+    docx_bytes: bytes,
+    model: DocumentModel,
+    cancel_check: Optional[Callable[[], bool]] = None,
+) -> None:
+    """Best-effort DOCX pagination: render to PDF, extract page text, and set elem.page.
 
-    Never raises. Any failure (soffice missing, timeout, render error) is
-    logged and leaves elements with page=None, exactly as before.
+    Pagination failures are logged and leave page=None. ReadCancelled propagates
+    so cancellation is not treated as a pagination failure.
     """
     try:
-        pdf_bytes = _render_to_pdf(docx_bytes, CONVERT_TIMEOUT_SECONDS)
+        pdf_bytes = _render_to_pdf(
+            docx_bytes, CONVERT_TIMEOUT_SECONDS, cancel_check=cancel_check
+        )
         page_texts = _extract_page_texts(pdf_bytes)
         _assign_pages(model, page_texts)
+    except ReadCancelled:
+        raise
     except Exception as exc:
         logger.warning(f"docx pagination skipped: {exc}")
 
 
-def _render_to_pdf(docx_bytes: bytes, timeout_seconds: int) -> bytes:
+def _render_to_pdf(
+    docx_bytes: bytes,
+    timeout_seconds: int,
+    cancel_check: Optional[Callable[[], bool]] = None,
+) -> bytes:
     with tempfile.TemporaryDirectory(prefix="tdb-docx-paginate-") as tmp_dir:
         # Step 1: write the docx to disk and close the handle before soffice touches it
         docx_path = os.path.join(tmp_dir, "input.docx")
@@ -54,7 +68,7 @@ def _render_to_pdf(docx_bytes: bytes, timeout_seconds: int) -> bytes:
         profile_uri = f"file://{tmp_dir}/lo_profile"
 
         try:
-            result = subprocess.run(
+            returncode, stdout, stderr = run_killable(
                 [
                     "soffice",
                     "--headless",
@@ -64,9 +78,8 @@ def _render_to_pdf(docx_bytes: bytes, timeout_seconds: int) -> bytes:
                     "--outdir", tmp_dir,
                     docx_path,
                 ],
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds,
+                timeout_seconds=timeout_seconds,
+                cancel_check=cancel_check,
             )
         except subprocess.TimeoutExpired:
             raise PaginationError(
@@ -75,10 +88,10 @@ def _render_to_pdf(docx_bytes: bytes, timeout_seconds: int) -> bytes:
         except FileNotFoundError:
             raise PaginationError("soffice binary not found on PATH")
 
-        if result.returncode != 0:
-            detail = (result.stderr or result.stdout or "").strip()
+        if returncode != 0:
+            detail = (stderr or stdout or "").strip()
             raise PaginationError(
-                f"soffice exited with code {result.returncode}: {detail}"
+                f"soffice exited with code {returncode}: {detail}"
             )
 
         # Step 3: read the pdf soffice wrote — separate handle, read mode

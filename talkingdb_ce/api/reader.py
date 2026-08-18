@@ -1,6 +1,6 @@
 import os
 import io
-from typing import Optional
+from typing import Callable, Optional
 from fastapi import APIRouter, UploadFile, File, Form
 from talkingdb.models.metadata.metadata import Metadata, DEFAULT_METADATA
 from talkingdb.helpers.metadata import update_metadata
@@ -17,12 +17,14 @@ from talkingdb_ce.model.api.reader import RequestModel
 router = APIRouter(prefix="/content", tags=["Elementizer"])
 
 
-@router.post("/parse")
-async def parse_file(
-        document_file: UploadFile = File(None),
-        metadata: Optional[str] = Form(DEFAULT_METADATA)
+async def run_parse(
+    document_file: UploadFile,
+    metadata: Optional[str],
+    cancel_check: Optional[Callable[[], bool]] = None,
 ):
-
+    """Parse an uploaded document, supporting HTTP and direct in-process calls
+    with cancel_check for the latter.
+    """
     request = RequestModel(
         document_file=document_file,
         metadata=metadata
@@ -54,7 +56,11 @@ async def parse_file(
     _, ext = os.path.splitext(file_name)
     file_type = ext.lstrip(".").lower()
 
-    document = parse_document(io_buffer, file_type, file_name)
+    @track()
+    def _parse_document():
+        return parse_document(io_buffer, file_type, file_name, cancel_check=cancel_check)
+
+    document = _parse_document()
     file_index = document.build_index()
 
     update_event(event, EventStatus.COMPLETED)
@@ -72,3 +78,11 @@ async def parse_file(
     clear_log_context()
 
     return _document
+
+
+@router.post("/parse")
+async def parse_file(
+        document_file: UploadFile = File(None),
+        metadata: Optional[str] = Form(DEFAULT_METADATA)
+):
+    return await run_parse(document_file, metadata)

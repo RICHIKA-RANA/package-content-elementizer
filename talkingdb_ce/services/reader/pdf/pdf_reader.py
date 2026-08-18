@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import fitz
 
@@ -19,6 +19,7 @@ from talkingdb.models.document.elements.primitive.paragraph import (
 )
 
 from ..docx.docx_reader import DocxReader
+from ..killable_subprocess import run_killable
 
 
 CONVERT_TIMEOUT_SECONDS = int(
@@ -46,10 +47,17 @@ class PdfReader:
         self.docx_reader = DocxReader()
 
     # --------------------------------------------------------------- public API
-    def read_document(self, io_buffer, file_name) -> DocumentModel:
+    def read_document(
+        self,
+        io_buffer,
+        file_name,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> DocumentModel:
         self._reject_if_password_protected(io_buffer, file_name)
 
-        docx_bytes, page_numbers = self._to_docx_bytes(io_buffer)
+        docx_bytes, page_numbers = self._to_docx_bytes(
+            io_buffer, cancel_check=cancel_check
+        )
 
         model = self.docx_reader.read_document(
             io.BytesIO(docx_bytes), file_name, paginate=False)
@@ -84,7 +92,11 @@ class PdfReader:
             )
 
     # ----------------------------------------------------------------- convert
-    def _to_docx_bytes(self, io_buffer) -> Tuple[bytes, List[int]]:
+    def _to_docx_bytes(
+        self,
+        io_buffer,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> Tuple[bytes, List[int]]:
         io_buffer.seek(0)
         pdf_data = io_buffer.read()
 
@@ -108,7 +120,9 @@ class PdfReader:
             ) as tmp_pages:
                 pages_path = tmp_pages.name
 
-            page_numbers = self._convert(pdf_path, docx_path, pages_path)
+            page_numbers = self._convert(
+                pdf_path, docx_path, pages_path, cancel_check=cancel_check
+            )
 
             with open(docx_path, "rb") as fh:
                 return fh.read(), page_numbers
@@ -120,28 +134,33 @@ class PdfReader:
                     except OSError:
                         logger.warning(f"failed to remove temp file: {path}")
 
-    def _convert(self, pdf_path: str, docx_path: str, pages_path: str) -> List[int]:
+    def _convert(
+        self,
+        pdf_path: str,
+        docx_path: str,
+        pages_path: str,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> List[int]:
         """Run pdf2docx in a killable child process with a wall-clock cap.
 
         Returns the ordered list of 1-based PDF page numbers, one per docx
         section pdf2docx produced (it starts a new section per page).
         """
         try:
-            result = subprocess.run(
+            returncode, stdout, stderr = run_killable(
                 [sys.executable, "-m", _CONVERT_MODULE,
                     pdf_path, docx_path, pages_path],
-                capture_output=True,
-                text=True,
-                timeout=CONVERT_TIMEOUT_SECONDS,
+                timeout_seconds=CONVERT_TIMEOUT_SECONDS,
+                cancel_check=cancel_check,
             )
         except subprocess.TimeoutExpired:
             raise ValueError(
                 f"PDF conversion exceeded {CONVERT_TIMEOUT_SECONDS}s and was aborted"
             )
 
-        if result.returncode != 0:
-            detail = (result.stderr or result.stdout or "").strip()
-            detail = detail or f"converter exited with code {result.returncode}"
+        if returncode != 0:
+            detail = (stderr or stdout or "").strip()
+            detail = detail or f"converter exited with code {returncode}"
             raise ValueError(f"PDF could not be converted ({detail})")
 
         try:
