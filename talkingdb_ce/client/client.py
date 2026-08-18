@@ -3,6 +3,8 @@ import requests
 import io
 from typing import Optional, Dict, Any, Union
 from talkingdb.models.api.mode import ClientMode
+from talkingdb.models.failure.failure import DocumentFailure
+from talkingdb.models.failure.reason import FailureReason
 from talkingdb.models.metadata.metadata import Metadata
 from talkingdb.helpers.client import Config
 from ..api import reader
@@ -58,7 +60,9 @@ class CEClient:
                 data=data,
                 timeout=self.timeout
             )
-            response.raise_for_status()
+            if response.status_code >= 400:
+                self._raise_declared_failure(response)
+                response.raise_for_status()
             return response.json()
 
         if not file:
@@ -68,3 +72,25 @@ class CEClient:
             document_file=file,
             metadata=metadata.to_str() if metadata else None
         )
+
+    # ------------------------------------------------------------- boundary
+    @staticmethod
+    def _raise_declared_failure(response) -> None:
+        try:
+            body = response.json()
+        except ValueError:
+            return
+
+        if not isinstance(body, dict):
+            return
+
+        raw_reason = body.get("failure_reason")
+        if not raw_reason:
+            return
+
+        try:
+            reason = FailureReason(raw_reason)
+        except ValueError:
+            return
+
+        raise DocumentFailure(reason, detail=body.get("detail"))
