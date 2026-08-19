@@ -41,43 +41,42 @@ async def run_parse(
                     function="parse_file",
                     **_meta)
 
-    file_bytes = await request.document_file.read()
-    file_name = request.document_file.filename
-    io_buffer = io.BytesIO(file_bytes)
-    document_path = file_name
+    try:
+        file_bytes = await request.document_file.read()
+        file_name = request.document_file.filename
+        io_buffer = io.BytesIO(file_bytes)
+        document_path = file_name
 
-    event_data = {
-        "document_path": document_path,
-        "file_name": file_name,
-        "type": _meta.get("type", "unknown")
-    }
-    event = update_event(event, EventStatus.ONGOING, event_data)
-
-    _, ext = os.path.splitext(file_name)
-    file_type = ext.lstrip(".").lower()
-
-    @track()
-    def _parse_document():
-        return parse_document(io_buffer, file_type, file_name, cancel_check=cancel_check)
-
-    document = _parse_document()
-    file_index = document.build_index()
-
-    update_event(event, EventStatus.COMPLETED)
-
-    @track(log_response=True, response_key=file_name)
-    def _parsed_document():
-        return {
-            "document": to_json(document),
-            "file_index": file_index.model_dump(mode="json")
+        event_data = {
+            "document_path": document_path,
+            "file_name": file_name,
+            "type": _meta.get("type", "unknown")
         }
+        event = update_event(event, EventStatus.ONGOING, event_data)
 
-    _document = _parsed_document()
+        _, ext = os.path.splitext(file_name)
+        file_type = ext.lstrip(".").lower()
 
-    clear_request_context()
-    clear_log_context()
+        @track()
+        def _parse_document():
+            return parse_document(io_buffer, file_type, file_name, cancel_check=cancel_check)
 
-    return _document
+        document = _parse_document()
+        file_index = document.build_index()
+
+        update_event(event, EventStatus.COMPLETED)
+
+        @track(log_response=True, response_key=file_name)
+        def _parsed_document():
+            return {
+                "document": to_json(document),
+                "file_index": file_index.model_dump(mode="json")
+            }
+
+        return _parsed_document()
+    finally:
+        clear_request_context()
+        clear_log_context()
 
 
 @router.post("/parse")
