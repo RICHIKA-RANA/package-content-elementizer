@@ -1751,13 +1751,13 @@ bcrypt = "^5.0.0"
 lxml = ">=6.0.0,<7.0.0"
 python-jose = {version = "^3.3.0", extras = ["cryptography"]}
 talkingdb-clients = {git = "https://github.com/TalkingDB/base-tdb-clients.git", rev = "9931c1f832d4772f5137cdc4bb193daadab2ad30"}
-talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "0943bf72dcdb83402ec639687db6fe104cc54c1d"}
+talkingdb-models = {git = "https://github.com/TalkingDB/base-tdb-models.git", rev = "9567ddad4bbb9a4306f733be8afde6f790a19684"}
 
 [package.source]
 type = "git"
 url = "https://github.com/TalkingDB/base-tdb-helpers.git"
-reference = "2f570ddae41d01ffec249664860b9b7878d6d714"
-resolved_reference = "2f570ddae41d01ffec249664860b9b7878d6d714"
+reference = "729a7b052b721c14801071faa7e3324bf4a0bd49"
+resolved_reference = "729a7b052b721c14801071faa7e3324bf4a0bd49"
 
 [[package]]
 name = "talkingdb-models"
@@ -1777,8 +1777,8 @@ smart-slugify = ">=0.1.2,<0.2.0"
 [package.source]
 type = "git"
 url = "https://github.com/TalkingDB/base-tdb-models.git"
-reference = "0943bf72dcdb83402ec639687db6fe104cc54c1d"
-resolved_reference = "0943bf72dcdb83402ec639687db6fe104cc54c1d"
+reference = "9567ddad4bbb9a4306f733be8afde6f790a19684"
+resolved_reference = "9567ddad4bbb9a4306f733be8afde6f790a19684"
 
 [[package]]
 name = "tenacity"
@@ -2188,4 +2188,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "0d4f0a01382de0a0de82a4582bc459b7a758a64ac90333cb872801bb83d1c997"
+content-hash = "d5c72a2fc2f8fe8d9c1e843fc595702cf82068c702337e95de24755d738159cb"
