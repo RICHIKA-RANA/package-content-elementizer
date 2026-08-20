@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 from .docx.docx_reader import DocxReader
 from .pdf.pdf_reader import PdfReader
 from talkingdb.models.document.document import DocumentModel
@@ -19,11 +21,16 @@ class ReaderFactory:
         return readers.get(file_type.lower())
 
 
-def parse_document(io_buffer, file_type: str, file_name: str) -> DocumentModel:
+def parse_document(
+    io_buffer,
+    file_type: str,
+    file_name: str,
+    cancel_check: Optional[Callable[[], bool]] = None,
+) -> DocumentModel:
     reader = ReaderFactory.get_reader(file_type)
     if not reader:
         raise DocumentFailure(
             FailureReason.UNSUPPORTED_FILE_TYPE,
             detail=f"unsupported file type: {file_type or '(none)'}",
         )
-    return reader.read_document(io_buffer, file_name)
+    return reader.read_document(io_buffer, file_name, cancel_check=cancel_check)

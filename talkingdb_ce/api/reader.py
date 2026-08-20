@@ -1,6 +1,6 @@
 import os
 import io
-from typing import Optional
+from typing import Callable, Optional
 from fastapi import APIRouter, UploadFile, File, Form
 from talkingdb.models.metadata.metadata import Metadata, DEFAULT_METADATA
 from talkingdb.helpers.metadata import update_metadata
@@ -17,12 +17,14 @@ from talkingdb_ce.model.api.reader import RequestModel
 router = APIRouter(prefix="/content", tags=["Elementizer"])
 
 
-@router.post("/parse")
-async def parse_file(
-        document_file: UploadFile = File(None),
-        metadata: Optional[str] = Form(DEFAULT_METADATA)
+async def run_parse(
+    document_file: UploadFile,
+    metadata: Optional[str],
+    cancel_check: Optional[Callable[[], bool]] = None,
 ):
-
+    """Parse an uploaded document, supporting HTTP and direct in-process calls
+    with cancel_check for the latter.
+    """
     request = RequestModel(
         document_file=document_file,
         metadata=metadata
@@ -39,36 +41,47 @@ async def parse_file(
                     function="parse_file",
                     **_meta)
 
-    file_bytes = await request.document_file.read()
-    file_name = request.document_file.filename
-    io_buffer = io.BytesIO(file_bytes)
-    document_path = file_name
+    try:
+        file_bytes = await request.document_file.read()
+        file_name = request.document_file.filename
+        io_buffer = io.BytesIO(file_bytes)
+        document_path = file_name
 
-    event_data = {
-        "document_path": document_path,
-        "file_name": file_name,
-        "type": _meta.get("type", "unknown")
-    }
-    event = update_event(event, EventStatus.ONGOING, event_data)
-
-    _, ext = os.path.splitext(file_name)
-    file_type = ext.lstrip(".").lower()
-
-    document = parse_document(io_buffer, file_type, file_name)
-    file_index = document.build_index()
-
-    update_event(event, EventStatus.COMPLETED)
-
-    @track(log_response=True, response_key=file_name)
-    def _parsed_document():
-        return {
-            "document": to_json(document),
-            "file_index": file_index.model_dump(mode="json")
+        event_data = {
+            "document_path": document_path,
+            "file_name": file_name,
+            "type": _meta.get("type", "unknown")
         }
+        event = update_event(event, EventStatus.ONGOING, event_data)
 
-    _document = _parsed_document()
+        _, ext = os.path.splitext(file_name)
+        file_type = ext.lstrip(".").lower()
 
-    clear_request_context()
-    clear_log_context()
+        @track()
+        def _parse_document():
+            return parse_document(io_buffer, file_type, file_name, cancel_check=cancel_check)
 
-    return _document
+        document = _parse_document()
+        file_index = document.build_index()
+
+        update_event(event, EventStatus.COMPLETED)
+
+        @track(log_response=True, response_key=file_name)
+        def _parsed_document():
+            return {
+                "document": to_json(document),
+                "file_index": file_index.model_dump(mode="json")
+            }
+
+        return _parsed_document()
+    finally:
+        clear_request_context()
+        clear_log_context()
+
+
+@router.post("/parse")
+async def parse_file(
+        document_file: UploadFile = File(None),
+        metadata: Optional[str] = Form(DEFAULT_METADATA)
+):
+    return await run_parse(document_file, metadata)
